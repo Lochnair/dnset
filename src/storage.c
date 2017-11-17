@@ -107,16 +107,13 @@ noinline domain_node * node_add(domain_node * root, char * key) {
 	pTrav = root->children;
 
 	if (pTrav == NULL) {
-		printk(KERN_INFO "dnset: no children");
 		// First node
 		for (pTrav = root; * key; pTrav = pTrav->children) {
-			printk(KERN_INFO "dnset: creating child for %c", *key);
 			pTrav->children = node_create(*key);
 			pTrav->children->parent = pTrav;
 			key++;
 		}
 
-		printk(KERN_INFO "dnset: create null terminator node");
 		pTrav->children = node_create('\0');
 		pTrav->children->parent = pTrav;
 		return pTrav->children;
@@ -260,7 +257,6 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 			}
 
 			if (curr->key == '*') {
-				printk(KERN_INFO "dnset: wildcard match");
 				return curr;
 			}
 		}
@@ -269,15 +265,11 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 			return NULL;
 		}
 
-		printk(KERN_INFO "dnset: found key: %c", curr->key);
-
 		if (curr->key == '*') {
-			printk(KERN_INFO "dnset: good wildcard");
 			return curr;
 		}
 
 		if (*key == '\0') {
-			printk(KERN_INFO "dnset: found key");
 			return curr;
 		}
 
