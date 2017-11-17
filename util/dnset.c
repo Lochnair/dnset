@@ -15,21 +15,8 @@ struct nl_sock* sock;
 
 static inline int add_domain(char * group, char * domain)
 {
-	return 0;
-}
-
-static inline int add_group(char * group)
-{
-	return 0;
-}
-
-int main(int argc, char **argv)
-{
 	int family_id, ret;
 	struct nl_msg *msg;
-
-	printf("Domain: %s\n", argv[2]);
-	printf("Group: %s\n", argv[1]);
 
 	sock = nl_socket_alloc();
 
@@ -43,6 +30,63 @@ int main(int argc, char **argv)
 
 	family_id = genl_ctrl_resolve(sock, DNSET_GENL_FAMILY_NAME);
 
+	/* First domain */
+	if (!(msg = nlmsg_alloc())) {
+		printf("Couldn't allocate space for the message");
+		nl_socket_free(sock);
+		return 5;
+	}
+
+	genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, family_id, 0, 0, DNSET_C_ADD_DOMAIN, DNSET_GENL_VERSION);
+
+	ret = nla_put_string(msg, DNSET_A_GROUP, group);
+
+	if (ret != 0) {
+		printf("Couldn't add group attribute to message.\n");
+		nl_socket_free(sock);
+		return 7;
+	}
+
+	ret = nla_put_string(msg, DNSET_A_DOMAIN, domain);
+
+	if (ret != 0) {
+		printf("Couldn't add domain attribute to message.\n");
+		nl_socket_free(sock);
+		return 8;
+	}
+
+	ret = nl_send_auto(sock, msg);
+
+	if (ret < 0) {
+		printf("Couldn't send message.\n");
+		nl_socket_free(sock);
+		return 9;
+	}
+
+	free(msg);
+	nl_socket_free(sock);
+
+	return 0;
+}
+
+static inline int add_group(char * group)
+{
+	int family_id, ret;
+	struct nl_msg *msg;
+
+	sock = nl_socket_alloc();
+
+	ret = genl_connect(sock);
+
+	if (ret != 0) {
+		printf("Couldn't connect to the NETLINK_GENERIC Netlink protocol");
+		nl_socket_free(sock);
+		return 1;
+	}
+
+	family_id = genl_ctrl_resolve(sock, DNSET_GENL_FAMILY_NAME);
+
+	/* Add group */
 	if (!(msg = nlmsg_alloc())) {
 		printf("Couldn't allocate space for the message");
 		nl_socket_free(sock);
@@ -51,7 +95,7 @@ int main(int argc, char **argv)
 
 	genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, family_id, 0, 0, DNSET_C_ADD_GROUP, DNSET_GENL_VERSION);
 
-	ret = nla_put_string(msg, DNSET_A_GROUP, argv[1]);
+	ret = nla_put_string(msg, DNSET_A_GROUP, group);
 
 	if (ret != 0) {
 		printf("Couldn't add group attribute to message.\n");
@@ -68,39 +112,43 @@ int main(int argc, char **argv)
 	}
 
 	free(msg);
-
-	if (!(msg = nlmsg_alloc())) {
-		printf("Couldn't allocate space for the message");
-		nl_socket_free(sock);
-		return 5;
-	}
-
-	genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, family_id, 0, 0, DNSET_C_ADD_DOMAIN, DNSET_GENL_VERSION);
-
-	ret = nla_put_string(msg, DNSET_A_GROUP, argv[1]);
-
-	if (ret != 0) {
-		printf("Couldn't add group attribute to message.\n");
-		nl_socket_free(sock);
-		return 7;
-	}
-
-	ret = nla_put_string(msg, DNSET_A_DOMAIN, argv[2]);
-
-	if (ret != 0) {
-		printf("Couldn't add domain attribute to message.\n");
-		nl_socket_free(sock);
-		return 8;
-	}
-
-	ret = nl_send_auto(sock, msg);
-
-	if (ret < 0) {
-		printf("Couldn't send message.\n");
-		nl_socket_free(sock);
-		return 9;
-	}
-
 	nl_socket_free(sock);
+
+	return 0;
+}
+
+void print_usage()
+{
+	printf("Usage: \n");
+	printf("dnset \n");
+	printf("      add <group> [domain]\n");
+	printf("      del <group> [domain]\n");
+}
+
+int main(int argc, char **argv)
+{
+	printf("argc = %d\n", argc);
+	if (argc < 2) {
+		print_usage();
+		return 1;
+	}
+
+	if(strcmp("add", argv[1]) == 0) {
+		if (argc == 3) {
+			add_group(argv[2]);
+		}
+		else if (argc == 4) {
+			add_domain(argv[2], argv[3]);
+		} else {
+			print_usage();
+			return 1;
+		}
+	} else if (strcmp("del", argv[1]) == 0) {
+		// TODO: Impl delete
+	} else {
+		print_usage();
+		return 1;	
+	}
+
 	return 0;
 }

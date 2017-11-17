@@ -61,10 +61,6 @@ static int dnset_add_domain(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	printk(KERN_INFO "dnset: group name: %s", group->name);
-
-	printk(KERN_INFO "dnset: group root pointer: %p", group->root_node);
-
 	if (strlen(domain) > 253)
 	{
 		printk(KERN_ERR "dnset: domain too long");

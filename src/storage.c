@@ -18,7 +18,6 @@ void domain_del(domain_group * group, char * name)
 
 domain_node * domain_search(domain_group * group, char * name)
 {
-	printk(KERN_INFO "dnset: domain_search root pointer: %p", group->root_node);
 	return node_lookup(group->root_node, strrev(name));
 }
 
@@ -108,13 +107,16 @@ noinline domain_node * node_add(domain_node * root, char * key) {
 	pTrav = root->children;
 
 	if (pTrav == NULL) {
+		printk(KERN_INFO "dnset: no children");
 		// First node
 		for (pTrav = root; * key; pTrav = pTrav->children) {
+			printk(KERN_INFO "dnset: creating child for %c", *key);
 			pTrav->children = node_create(*key);
 			pTrav->children->parent = pTrav;
 			key++;
 		}
 
+		printk(KERN_INFO "dnset: create null terminator node");
 		pTrav->children = node_create('\0');
 		pTrav->children->parent = pTrav;
 		return pTrav->children;
@@ -232,13 +234,16 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 	domain_node * level = root;
 	int lvl = 0;
 
-	printk(KERN_INFO "dnset: level root pointer: %p", level);
-
 	if (root == NULL)
+		return NULL;
+
+	if (root->children == NULL)
 		return NULL;
 
 	if (key == NULL)
 		return NULL;
+
+	level = root->children;
 
 	printk(KERN_INFO "dnset: Looking up: %s", key);
 
@@ -247,15 +252,16 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 		domain_node * found = NULL;
 		domain_node * curr;
 
-		printk(KERN_INFO "dnset: recurse level: %d", lvl);
-
 		for(curr = level; curr != NULL; curr = curr->next) {
-			printk(KERN_INFO "dnset: curr pointer: %p", curr);
-			printk(KERN_INFO "dnset: Current key: %d", curr->key);
 			if (curr->key == *key) {
 				found = curr;
 				lvl++;
 				break;
+			}
+
+			if (curr->key == '*') {
+				printk(KERN_INFO "dnset: wildcard match");
+				return curr;
 			}
 		}
 
@@ -263,15 +269,15 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 			return NULL;
 		}
 
-		if (curr->key == '*') {
-			domain_node * nulled = curr->children;
-			if (nulled == NULL || nulled->key != '\0')
-				printk(KERN_WARNING "dnset: Something weird happening here: %s", key);
+		printk(KERN_INFO "dnset: found key: %c", curr->key);
 
-			return nulled;
+		if (curr->key == '*') {
+			printk(KERN_INFO "dnset: good wildcard");
+			return curr;
 		}
 
 		if (*key == '\0') {
+			printk(KERN_INFO "dnset: found key");
 			return curr;
 		}
 
