@@ -265,10 +265,6 @@ noinline domain_node * node_lookup(domain_node * root, char * key) {
 			return NULL;
 		}
 
-		if (curr->key == '*') {
-			return curr;
-		}
-
 		if (*key == '\0') {
 			return curr;
 		}
