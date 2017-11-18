@@ -79,7 +79,7 @@ static int dnset_add_domain(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	if (domain_add(group, domain) == NULL)
+	if (domain_add(group, domain) != 0)
 	{
 		printk(KERN_ERR "dnset: Something went horribly wrong.");
 		return -1;
