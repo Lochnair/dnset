@@ -125,7 +125,11 @@ static int dnset_add_group(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	group_new(group_name);
+	if (group_add(group_name) != 0)
+	{
+		printk(KERN_ERR "dnset: something went wrong while adding group: %s", group_name);
+		return -1;
+	}
 
 	return 0;
 }

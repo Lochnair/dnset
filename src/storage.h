@@ -15,22 +15,14 @@ typedef struct domain_group {
 	struct list_head list;
 } domain_group;
 
-domain_node * domain_add(domain_group * group, char * name);
-void domain_del(domain_group * group, char * name);
+int domain_add(domain_group * group, char * name);
+int domain_del(domain_group * group, char * name);
 domain_node * domain_search(domain_group * group, char * name);
 
+int group_add(char * name);
 int group_del(char * name);
 void group_destroy(void);
 domain_group * group_get(char * name);
-void group_new(char * name);
-
-
-domain_node * node_add(domain_node * root, char * key);
-domain_node * node_create(u8 key);
-domain_node * node_create_root(void);
-void node_destroy(domain_node * root);
-domain_node * node_lookup(domain_node * root, char * key);
-void node_remove(domain_node * root, char * key);
 
 static inline char * strrev(char * str)
 {
