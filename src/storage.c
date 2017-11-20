@@ -18,7 +18,6 @@
  */
 
 #include <linux/list.h>
-#include <linux/radix-tree.h>
 #include <linux/slab.h>
 
 #include "storage.h"
