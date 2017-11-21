@@ -16,34 +16,5 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#define DNSET_GENL_FAMILY_NAME "dnset"
-#define DNSET_GENL_VERSION 0x1
-
-/* Attributes */
-enum {
-	DNSET_A_UNSPEC,
-	DNSET_A_DOMAIN,
-	DNSET_A_GROUP,
-	DNSET_A_LIST,
-	DNSET_A_RESULT,
-	__DNSET_A_MAX,
-};
-
-#define DNSET_A_MAX (__DNSET_A_MAX - 1)
-
-/* Commands: enumeration off all commands
- * used by userspace applications to identify command to be executed
- */
-enum {
-	DNSET_C_UNSPEC,
-	DNSET_C_ADD_DOMAIN,
-	DNSET_C_ADD_GROUP,
-	DNSET_C_DEL_DOMAIN,
-	DNSET_C_DEL_GROUP,
-	DNSET_C_LIST_DOMAINS,
-	DNSET_C_LIST_GROUPS,
-	DNSET_C_MATCH_DOMAIN,
-	__DNSET_C_MAX,
-};
-#define DNSET_C_MAX (__DNSET_C_MAX - 1)
+bool dnset_match(char * group_name, char * domain_name);
+EXPORT_SYMBOL(dnset_match);

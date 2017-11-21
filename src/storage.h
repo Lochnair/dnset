@@ -40,6 +40,7 @@ int group_add(char * name);
 int group_del(char * name);
 void group_destroy(void);
 domain_group * group_get(char * name);
+char * group_list(void);
 
 static inline char * strrev(char * str)
 {

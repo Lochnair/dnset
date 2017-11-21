@@ -25,6 +25,7 @@
 #include <net/sock.h>
 #include <net/netlink.h>
 #include <net/genetlink.h>
+#include "dnset.h"
 #include "netlink.h"
 #include "storage.h"
 
@@ -34,9 +35,11 @@ static struct genl_family dnset_gnl_family;
 static struct nla_policy dnset_genl_policy[DNSET_A_MAX + 1] = {
 	[DNSET_A_DOMAIN]	= { .type = NLA_STRING },
 	[DNSET_A_GROUP]		= { .type = NLA_STRING },
+	[DNSET_A_LIST]		= { .type = NLA_STRING },
+	[DNSET_A_RESULT]	= { .type = NLA_STRING },
 };
 
-static int dnset_add_domain(struct sk_buff *skb, struct genl_info *info)
+static int add_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
@@ -113,7 +116,7 @@ static int dnset_add_domain(struct sk_buff *skb, struct genl_info *info)
 	return 0;
 }
 
-static int dnset_add_group(struct sk_buff *skb, struct genl_info *info)
+static int add_group(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
@@ -153,13 +156,54 @@ static int dnset_add_group(struct sk_buff *skb, struct genl_info *info)
 	return 0;
 }
 
-static int dnset_del_domain(struct sk_buff *skb, struct genl_info *info)
+static int del_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	return 0;
 }
 
-static int dnset_del_group(struct sk_buff *skb, struct genl_info *info)
+static int del_group(struct sk_buff *skb, struct genl_info *info)
 {
+	return 0;
+}
+
+static int list_domains(struct sk_buff *skb, struct genl_info *info)
+{
+	return 0;
+}
+
+static int list_groups(struct sk_buff *skb, struct genl_info *info)
+{
+	return 0;
+}
+
+static int match_domain(struct sk_buff *skb, struct genl_info *info)
+{
+	int ret;
+	struct nlattr *tb[__DNSET_A_MAX];
+	char *domain, *group_name;
+
+	printk(KERN_INFO "dnset: Received Netlink message.\n");
+
+	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
+	#else
+	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
+	#endif
+
+	if (ret != 0) {
+		printk(KERN_ERR "dnset: Couldn't parse message.");
+		return ret;
+	}
+
+	domain = kmalloc(strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1), GFP_KERNEL);
+	strcpy(domain, nla_data(tb[DNSET_A_DOMAIN]));
+
+	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
+	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+
+	if (!dnset_match(group_name, domain))
+		return -1;
+
 	return 0;
 }
 
@@ -169,30 +213,51 @@ static struct genl_ops dnset_gnl_ops[] = {
 		.cmd = DNSET_C_ADD_DOMAIN,
 		.flags = 0,
 		.policy = dnset_genl_policy,
-		.doit = dnset_add_domain,
+		.doit = add_domain,
 		.dumpit = NULL,
 	},
 	{
 		.cmd = DNSET_C_ADD_GROUP,
 		.flags = 0,
 		.policy = dnset_genl_policy,
-		.doit = dnset_add_group,
+		.doit = add_group,
 		.dumpit = NULL,
 	},
 	{
 		.cmd = DNSET_C_DEL_DOMAIN,
 		.flags = 0,
 		.policy = dnset_genl_policy,
-		.doit = dnset_del_domain,
+		.doit = del_domain,
 		.dumpit = NULL,
 	},
 	{
 		.cmd = DNSET_C_DEL_GROUP,
 		.flags = 0,
 		.policy = dnset_genl_policy,
-		.doit = dnset_del_group,
+		.doit = del_group,
 		.dumpit = NULL,
 	},
+	{
+		.cmd = DNSET_C_LIST_DOMAINS,
+		.flags = 0,
+		.policy = dnset_genl_policy,
+		.doit = list_domains,
+		.dumpit = NULL,
+	},
+	{
+		.cmd = DNSET_C_LIST_GROUPS,
+		.flags = 0,
+		.policy = dnset_genl_policy,
+		.doit = list_groups,
+		.dumpit = NULL,
+	},
+	{
+		.cmd = DNSET_C_MATCH_DOMAIN,
+		.flags = 0,
+		.policy = dnset_genl_policy,
+		.doit = match_domain,
+		.dumpit = NULL,
+	}
 };
 
 static struct genl_family dnset_gnl_family = {
@@ -223,6 +288,40 @@ static void __exit dnset_exit (void)
 {
 	printk(KERN_INFO "Unloading dnset module.\n");
 	genl_unregister_family(&dnset_gnl_family);
+}
+
+bool dnset_match(char * group_name, char * domain_name)
+{
+	domain_group * group;
+
+	if (domain_name == NULL || group_name == NULL)
+	{
+		printk(KERN_ERR "dnset: how about that null-pointer?");
+		return -1;
+	}
+
+	group = group_get(group_name);
+
+	if (group == NULL)
+	{
+		// Non-existant group
+		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
+		return -1;
+	}
+
+	if (strlen(domain_name) > 253)
+	{
+		printk(KERN_ERR "dnset: domain too long");
+		return -1;
+	}
+
+	if (strlen(domain_name) < 1)
+	{
+		printk(KERN_ERR "dnset: domain too short");
+		return -1;
+	}
+
+	return domain_search(group, domain_name);
 }
 
 module_init(dnset_init);

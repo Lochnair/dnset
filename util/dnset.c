@@ -142,6 +142,8 @@ void print_usage()
 	printf("dnset \n");
 	printf("      add <group> [domain]\n");
 	printf("      del <group> [domain]\n");
+	printf("      list [group]\n");
+	printf("      match <group> <domain>\n");
 }
 
 int main(int argc, char **argv)
@@ -166,7 +168,7 @@ int main(int argc, char **argv)
 		// TODO: Impl delete
 	} else {
 		print_usage();
-		return 1;	
+		return 1;
 	}
 
 	return 0;

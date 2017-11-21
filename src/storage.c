@@ -347,3 +347,31 @@ domain_group * group_get(char * name)
 
         return NULL;
 }
+
+char * group_list()
+{
+	domain_group * group;
+	struct list_head * pos;
+	char * list = NULL;
+	int len = 0;
+
+	list_for_each(pos, &group_list) {
+		group = list_entry(pos, domain_group, list);
+
+		if (group == NULL)
+		{
+			printk(KERN_ERR "dnset: group is null");
+			continue;
+		}
+
+		if (group->name == NULL)
+		{
+			printk(KERN_ERR "dnset: group->name is null");
+			continue;
+		}
+
+		len += strlen(group->name) + 1;
+		list = krealloc(list, len);
+		snprintf(list, len, )
+	}
+}
