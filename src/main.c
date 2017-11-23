@@ -43,7 +43,7 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	char *domain, *group_name;
+	u8 *domain, *group_name;
 	domain_group * group;
 
 	printk(KERN_INFO "dnset: Received Netlink message.\n");
@@ -97,7 +97,7 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 
 	if (domain_search(group, domain))
 	{
-		printk(KERN_ERR "dnset: domain %s already in group %s", domain, (char *)nla_data(tb[DNSET_A_GROUP]));
+		printk(KERN_ERR "dnset: domain %s already in group %s", domain, (u8 *)nla_data(tb[DNSET_A_GROUP]));
 		return -1;
 	}
 
@@ -120,7 +120,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	char *group_name;
+	u8 *group_name;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -180,7 +180,7 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	char *domain, *group_name;
+	u8 *domain, *group_name;
 
 	printk(KERN_INFO "dnset: Received Netlink message.\n");
 
@@ -290,7 +290,7 @@ static void __exit dnset_exit (void)
 	genl_unregister_family(&dnset_gnl_family);
 }
 
-bool dnset_match(char * group_name, char * domain_name)
+bool dnset_match(u8 * group_name, u8 * domain_name)
 {
 	domain_group * group;
 

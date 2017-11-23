@@ -16,5 +16,5 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-bool dnset_match(char * group_name, char * domain_name);
+bool dnset_match(u8 * group_name, u8 * domain_name);
 EXPORT_SYMBOL(dnset_match);

@@ -44,7 +44,7 @@ static domain_node * node_create_root(void) {
 	return node_create('\0');
 }
 
-static domain_node * node_lookup(domain_node * root, char * key) {
+static domain_node * node_lookup(domain_node * root, u8 * key) {
 	domain_node * level = root;
 	int lvl = 0;
 
@@ -91,7 +91,7 @@ static domain_node * node_lookup(domain_node * root, char * key) {
 	}
 }
 
-static int node_add(domain_node * root, char * key) {
+static int node_add(domain_node * root, u8 * key) {
 	domain_node * pTrav = NULL;
 
 	if (root == NULL) {
@@ -203,7 +203,7 @@ static void node_destroy(domain_node * root) {
 	}
 }
 
-static int node_remove(domain_node * root, char * key) {
+static int node_remove(domain_node * root, u8 * key) {
 	domain_node * ptr = NULL;
 	domain_node * tmp = NULL;
 
@@ -246,22 +246,22 @@ static int node_remove(domain_node * root, char * key) {
 	return 0;
 }
 
-int domain_add(domain_group * group, char * name)
+int domain_add(domain_group * group, u8 * name)
 {
 	return node_add(group->root_node, strrev(name));
 }
 
-int domain_del(domain_group * group, char * name)
+int domain_del(domain_group * group, u8 * name)
 {
 	return node_remove(group->root_node, strrev(name));
 }
 
-domain_node * domain_search(domain_group * group, char * name)
+domain_node * domain_search(domain_group * group, u8 * name)
 {
 	return node_lookup(group->root_node, strrev(name));
 }
 
-int group_add(char * group_name)
+int group_add(u8 * group_name)
 {
 	domain_group * group = kmalloc(sizeof(domain_group), GFP_KERNEL);
 
@@ -283,7 +283,7 @@ int group_add(char * group_name)
 	return 0;
 }
 
-int group_del(char * name)
+int group_del(u8 * name)
 {
 	domain_group * group = group_get(name);
 
@@ -312,7 +312,7 @@ void group_destroy()
 	}
 }
 
-domain_group * group_get(char * name)
+domain_group * group_get(u8 * name)
 {
         domain_group * group;
         struct list_head * pos;
@@ -348,11 +348,11 @@ domain_group * group_get(char * name)
         return NULL;
 }
 
-char * group_list()
+u8 * group_list()
 {
 	domain_group * group;
 	struct list_head * pos;
-	char * list = NULL;
+	u8 * list = NULL;
 	int len = 0;
 
 	list_for_each(pos, &group_list) {
