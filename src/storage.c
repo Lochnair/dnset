@@ -22,7 +22,7 @@
 
 #include "storage.h"
 
-LIST_HEAD(group_list);
+LIST_HEAD(group_list_head);
 
 static domain_node * node_create(u8 key) {
 	domain_node * node = (domain_node *) kmalloc(sizeof(domain_node), GFP_KERNEL);
@@ -278,7 +278,7 @@ int group_add(u8 * group_name)
 	}
 
 	INIT_LIST_HEAD(&group->list);
-	list_add(&group->list, &group_list);
+	list_add(&group->list, &group_list_head);
 
 	return 0;
 }
@@ -303,7 +303,7 @@ void group_destroy()
 	domain_group * group;
 	struct list_head * pos;
 
-	list_for_each_prev(pos, &group_list) {
+	list_for_each_prev(pos, &group_list_head) {
 		group = list_entry(pos, domain_group, list);
 		list_del(&group->list);
 		node_destroy(group->root_node);
@@ -325,7 +325,7 @@ domain_group * group_get(u8 * name)
 
         printk(KERN_INFO "dnset: looking for group: %s", name);
 
-        list_for_each(pos, &group_list) {
+        list_for_each(pos, &group_list_head) {
                 group = list_entry(pos, domain_group, list);
 
                 if (group == NULL)
@@ -355,7 +355,7 @@ u8 * group_list(void)
 	u8 * list = NULL;
 	int len = 0;
 
-	list_for_each(pos, &group_list) {
+	list_for_each(pos, &group_list_head) {
 		group = list_entry(pos, domain_group, list);
 
 		if (group == NULL)
