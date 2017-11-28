@@ -370,8 +370,10 @@ u8 * group_list(void)
 			continue;
 		}
 
-		len += strlen(group->name) + 1;
-		list = krealloc(list, len);
-		snprintf(list, len, )
+		len += strlen(group->name) + 1; /* +1 for \n */
+		list = krealloc(list, len, GFP_KERNEL);
+		strncat(strncat(list, "\n", len), group->name, len);
 	}
+
+	return list;
 }
