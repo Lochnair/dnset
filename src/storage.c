@@ -348,7 +348,7 @@ domain_group * group_get(u8 * name)
         return NULL;
 }
 
-u8 * group_list()
+u8 * group_list(void)
 {
 	domain_group * group;
 	struct list_head * pos;
