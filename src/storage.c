@@ -256,6 +256,11 @@ s32 domain_del(domain_group * group, u8 * name)
 	return node_remove(group->root_node, strrev(name));
 }
 
+u8 * domain_list(domain_group * group)
+{
+	return "";
+}
+
 domain_node * domain_search(domain_group * group, u8 * name)
 {
 	return node_lookup(group->root_node, strrev(name));
@@ -371,10 +376,18 @@ u8 * group_list(void)
 			continue;
 		}
 
-		curr_len = strlen(group->name) + 1;
-		len += curr_len + 1;  /* +1 for \n */
-		list = krealloc(list, len, GFP_KERNEL);
-		strncat(strncat(list, "\n", 1), group->name, curr_len);
+		if (len == 0)
+		{
+			curr_len = strlen(group->name);
+			len += curr_len + 1; /* +1 for null-terminator */
+			list = krealloc(list, len, GFP_KERNEL);
+			strncat(list, group->name, curr_len);
+		} else {
+			curr_len = strlen(group->name);
+			len += curr_len + 1;  /* +1 for \n */
+			list = krealloc(list, len, GFP_KERNEL);
+			strncat(strncat(list, "\n", 1), group->name, curr_len);
+		}
 	}
 
 	return list;

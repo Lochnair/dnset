@@ -175,6 +175,7 @@ static int list_groups(struct sk_buff *skb, struct genl_info *info)
 {
 	char * result = group_list();
 	printk(KERN_INFO "dnset: list: %s", result);
+	kfree(result);
 	return 0;
 }
 
