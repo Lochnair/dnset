@@ -380,7 +380,7 @@ u8 * group_list(void)
 		{
 			curr_len = strlen(group->name);
 			len += curr_len + 1; /* +1 for null-terminator */
-			list = krealloc(list, len, GFP_KERNEL);
+			list = kmalloc(len, GFP_KERNEL);
 			strncat(list, group->name, curr_len);
 		} else {
 			curr_len = strlen(group->name);
