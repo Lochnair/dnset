@@ -356,6 +356,7 @@ u8 * group_list(void)
 	u32 len = 0;
 
 	list_for_each(pos, &group_list_head) {
+		u32 curr_len = 0;
 		group = list_entry(pos, domain_group, list);
 
 		if (group == NULL)
@@ -370,9 +371,10 @@ u8 * group_list(void)
 			continue;
 		}
 
-		len += strlen(group->name) + 1; /* +1 for \n */
+		curr_len = strlen(group->name) + 1;
+		len += curr_len + 1;  /* +1 for \n */
 		list = krealloc(list, len, GFP_KERNEL);
-		strncat(strncat(list, "\n", len), group->name, len);
+		strncat(strncat(list, "\n", 1), group->name, curr_len);
 	}
 
 	return list;
