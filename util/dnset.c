@@ -136,6 +136,46 @@ static inline int add_group(char * group)
 	return 0;
 }
 
+static inline int list_groups()
+{
+	int family_id, ret;
+	struct nl_msg *msg;
+
+	sock = nl_socket_alloc();
+
+	ret = genl_connect(sock);
+
+	if (ret != 0) {
+		printf("Couldn't connect to the NETLINK_GENERIC Netlink protocol");
+		nl_socket_free(sock);
+		return 1;
+	}
+
+	family_id = genl_ctrl_resolve(sock, DNSET_GENL_FAMILY_NAME);
+
+	/* Add group */
+	if (!(msg = nlmsg_alloc())) {
+		printf("Couldn't allocate space for the message");
+		nl_socket_free(sock);
+		return 2;
+	}
+
+	genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, family_id, 0, 0, DNSET_C_LIST_GROUPS, DNSET_GENL_VERSION);
+
+	ret = nl_send_auto(sock, msg);
+
+	if (ret < 0) {
+		printf("Couldn't send message.\n");
+		nl_socket_free(sock);
+		return 4;
+	}
+
+	free(msg);
+	nl_socket_free(sock);
+
+	return 0;
+}
+
 void print_usage()
 {
 	printf("Usage: \n");
@@ -166,6 +206,8 @@ int main(int argc, char **argv)
 		}
 	} else if (strcmp("del", argv[1]) == 0) {
 		// TODO: Impl delete
+	} else if (strcmp("list", argv[1]) == 0) {
+		list_groups();
 	} else {
 		print_usage();
 		return 1;

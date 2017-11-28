@@ -173,6 +173,8 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 
 static int list_groups(struct sk_buff *skb, struct genl_info *info)
 {
+	char * result = group_list();
+	printk(KERN_INFO "dnset: list: %s, result");
 	return 0;
 }
 
