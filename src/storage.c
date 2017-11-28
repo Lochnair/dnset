@@ -46,7 +46,7 @@ static domain_node * node_create_root(void) {
 
 static domain_node * node_lookup(domain_node * root, u8 * key) {
 	domain_node * level = root;
-	int lvl = 0;
+	u32 lvl = 0;
 
 	if (root == NULL)
 		return NULL;
@@ -91,7 +91,7 @@ static domain_node * node_lookup(domain_node * root, u8 * key) {
 	}
 }
 
-static int node_add(domain_node * root, u8 * key) {
+static s32 node_add(domain_node * root, u8 * key) {
 	domain_node * pTrav = NULL;
 
 	if (root == NULL) {
@@ -203,7 +203,7 @@ static void node_destroy(domain_node * root) {
 	}
 }
 
-static int node_remove(domain_node * root, u8 * key) {
+static s32 node_remove(domain_node * root, u8 * key) {
 	domain_node * ptr = NULL;
 	domain_node * tmp = NULL;
 
@@ -246,12 +246,12 @@ static int node_remove(domain_node * root, u8 * key) {
 	return 0;
 }
 
-int domain_add(domain_group * group, u8 * name)
+s32 domain_add(domain_group * group, u8 * name)
 {
 	return node_add(group->root_node, strrev(name));
 }
 
-int domain_del(domain_group * group, u8 * name)
+s32 domain_del(domain_group * group, u8 * name)
 {
 	return node_remove(group->root_node, strrev(name));
 }
@@ -261,7 +261,7 @@ domain_node * domain_search(domain_group * group, u8 * name)
 	return node_lookup(group->root_node, strrev(name));
 }
 
-int group_add(u8 * group_name)
+s32 group_add(u8 * group_name)
 {
 	domain_group * group = kmalloc(sizeof(domain_group), GFP_KERNEL);
 
@@ -283,7 +283,7 @@ int group_add(u8 * group_name)
 	return 0;
 }
 
-int group_del(u8 * name)
+s32 group_del(u8 * name)
 {
 	domain_group * group = group_get(name);
 
@@ -353,7 +353,7 @@ u8 * group_list(void)
 	domain_group * group;
 	struct list_head * pos;
 	u8 * list = NULL;
-	int len = 0;
+	u32 len = 0;
 
 	list_for_each(pos, &group_list_head) {
 		group = list_entry(pos, domain_group, list);
