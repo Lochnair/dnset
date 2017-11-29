@@ -376,12 +376,13 @@ u8 * group_list(void)
 			continue;
 		}
 
+		curr_len = strlen(group->name);
+
 		if (len == 0)
 		{
-			curr_len = strlen(group->name);
 			len += curr_len + 1; /* +1 for null-terminator */
 			list = kmalloc(len, GFP_KERNEL);
-			memcpy(list, group->name, curr_len);
+			memcpy(list, group->name, len);
 		} else {
 			curr_len = strlen(group->name);
 			len += curr_len + 1;  /* +1 for \n */
