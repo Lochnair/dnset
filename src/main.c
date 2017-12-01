@@ -168,6 +168,40 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 
 static int list_domains(struct sk_buff *skb, struct genl_info *info)
 {
+	int ret;
+	struct nlattr *tb[__DNSET_A_MAX];
+	domain_group * group;
+	u8 *group_name;
+	char * list;
+
+	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
+	#else
+	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
+	#endif
+
+	if (ret != 0) {
+		printk(KERN_ERR "dnset: Couldn't parse message.");
+		return ret;
+	}
+
+	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
+	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+
+	if (strlen(group_name) < 1)
+	{
+		return -1;
+	}
+
+	if ((group = group_get(group_name)) == NULL)
+	{
+		printk(KERN_ERR "dnset: group %s doesn't exist", group_name);
+		return -1;
+	}
+
+	list = domain_list(group);
+
+	kfree(group_name);
 	return 0;
 }
 
