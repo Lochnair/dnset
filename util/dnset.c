@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 		if (argc == 2) {
 			list_groups();
 		}
-		if (argc == 3) {
+		else if (argc == 3) {
 			list_domains(argv[2]);
 		} else {
 			print_usage();
