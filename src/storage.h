@@ -34,6 +34,7 @@ typedef struct domain_group {
 
 int domain_add(domain_group * group, u8 * name);
 int domain_del(domain_group * group, u8 * name);
+u8 * domain_list(domain_group * group);
 domain_node * domain_search(domain_group * group, u8 * name);
 
 int group_add(u8 * name);
