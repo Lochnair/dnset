@@ -255,10 +255,10 @@ int main(int argc, char **argv)
 	} else if (strcmp("del", argv[1]) == 0) {
 		// TODO: Impl delete
 	} else if (strcmp("list", argv[1]) == 0) {
-		if (argc == 3) {
+		if (argc == 2) {
 			list_groups();
 		}
-		if (argc == 4) {
+		if (argc == 3) {
 			list_domains(argv[2]);
 		} else {
 			print_usage();
