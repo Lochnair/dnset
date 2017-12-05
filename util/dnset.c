@@ -224,6 +224,62 @@ static inline int list_groups()
 	return 0;
 }
 
+static inline int match_domain(char * group, char * domain)
+{
+	int family_id, ret;
+	struct nl_msg *msg;
+
+	sock = nl_socket_alloc();
+
+	ret = genl_connect(sock);
+
+	if (ret != 0) {
+		printf("Couldn't connect to the NETLINK_GENERIC Netlink protocol");
+		nl_socket_free(sock);
+		return 1;
+	}
+
+	family_id = genl_ctrl_resolve(sock, DNSET_GENL_FAMILY_NAME);
+
+	/* First domain */
+	if (!(msg = nlmsg_alloc())) {
+		printf("Couldn't allocate space for the message");
+		nl_socket_free(sock);
+		return 5;
+	}
+
+	genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, family_id, 0, 0, DNSET_C_MATCH_DOMAIN, DNSET_GENL_VERSION);
+
+	ret = nla_put_string(msg, DNSET_A_GROUP, group);
+
+	if (ret != 0) {
+		printf("Couldn't add group attribute to message.\n");
+		nl_socket_free(sock);
+		return 7;
+	}
+
+	ret = nla_put_string(msg, DNSET_A_DOMAIN, domain);
+
+	if (ret != 0) {
+		printf("Couldn't add domain attribute to message.\n");
+		nl_socket_free(sock);
+		return 8;
+	}
+
+	ret = nl_send_auto(sock, msg);
+
+	if (ret < 0) {
+		printf("Couldn't send message.\n");
+		nl_socket_free(sock);
+		return 9;
+	}
+
+	free(msg);
+	nl_socket_free(sock);
+
+	return 0;
+}
+
 void print_usage()
 {
 	printf("Usage: \n");
@@ -260,6 +316,13 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 3) {
 			list_domains(argv[2]);
+		} else {
+			print_usage();
+			return 1;
+		}
+	} else if (strcmp("match", argv[1]) == 0) {
+		if (argc == 4) {
+			match_domain(argv[2], argv[3]);
 		} else {
 			print_usage();
 			return 1;
