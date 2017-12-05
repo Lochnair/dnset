@@ -293,7 +293,7 @@ s32 group_del(u8 * name)
 	domain_group * group = group_get(name);
 
 	if (!group)
-	return -1;
+		return -1;
 
 	list_del(&group->list);
 	node_destroy(group->root_node);
