@@ -258,6 +258,40 @@ s32 domain_del(domain_group * group, u8 * name)
 
 u8 * domain_list(domain_group * group)
 {
+	domain_node * ptr = group->root_node;
+	domain_node * tmp = NULL;
+
+	while (ptr)
+	{
+		while (ptr->children)
+			ptr = ptr->children;
+
+		tmp = ptr;
+
+		if (ptr->prev && ptr->next)
+		{
+			printk("node (1): %c", ptr->key);
+		}
+		else if (ptr->prev && !ptr->next)
+		{
+			printk("node (2): %c", ptr->key);
+		}
+		else if(!ptr->prev && ptr->next)
+		{
+			printk("node (3): %c", ptr->key);
+		}
+		else
+		{
+			if (ptr->parent == NULL)
+			{
+				// We're now at the root node
+				return "";
+			}
+
+			printk("node (4): %c", ptr->key);
+		}
+	}
+
 	return "";
 }
 
