@@ -446,6 +446,8 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 		return false;
 	}
 
+	printk("dnset: %s in %s: %s", domain_name, group_name, (domain_search(group, domain_name) == NULL ? "false" : "true"));
+
 	return domain_search(group, domain_name) != NULL;
 }
 
