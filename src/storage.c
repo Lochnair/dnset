@@ -59,8 +59,6 @@ static domain_node * node_lookup(domain_node * root, u8 * key) {
 
 	level = root->children;
 
-	printk(KERN_INFO "dnset: Looking up: %s", key);
-
 	while (1)
 	{
 		domain_node * found = NULL;
@@ -376,8 +374,6 @@ domain_group * group_get(u8 * name)
                 printk(KERN_ERR "dnset: received null pointer for group_name");
                 return NULL;
         }
-
-        printk(KERN_INFO "dnset: looking for group: %s", name);
 
         list_for_each(pos, &group_list_head) {
                 group = list_entry(pos, domain_group, list);
