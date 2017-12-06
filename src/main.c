@@ -287,6 +287,7 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	list = domain_list(group);
+	printk("list: %s", list);
 
 	kfree(group_name);
 	return 0;

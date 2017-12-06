@@ -256,43 +256,58 @@ s32 domain_del(domain_group * group, u8 * name)
 	return node_remove(group->root_node, strrev(name));
 }
 
-u8 * domain_list(domain_group * group)
+void traverse_node(domain_node * ptr, u8 ** dst)
 {
-	domain_node * ptr = group->root_node;
-	domain_node * tmp = NULL;
 
-	while (ptr)
+	for (; ptr != NULL; ptr = ptr->children)
 	{
-		while (ptr->children)
-			ptr = ptr->children;
+		if (ptr->key == '\0')
+		{
+			domain_node * tmp = ptr->parent;
+			u8 * word = kmalloc(sizeof(u8), GFP_KERNEL);
+			u32 buff_len, len = 0;
 
-		tmp = ptr;
-
-		if (ptr->prev && ptr->next)
-		{
-			printk("node (1): %c", ptr->key);
-		}
-		else if (ptr->prev && !ptr->next)
-		{
-			printk("node (2): %c", ptr->key);
-		}
-		else if(!ptr->prev && ptr->next)
-		{
-			printk("node (3): %c", ptr->key);
-		}
-		else
-		{
-			if (ptr->parent == NULL)
+			while (tmp)
 			{
-				// We're now at the root node
-				return "";
+				word = krealloc(word, sizeof(u8) * (1 + len), GFP_KERNEL);
+				word[len] = tmp->key;
+
+				if (len > 0 && tmp->key == '\0')
+				{
+					// root node
+					break;
+				}
+
+				tmp = tmp->parent;
+				len++;
 			}
 
-			printk("node (4): %c", ptr->key);
+
+			buff_len = strlen(*dst) + strlen(word) + 1;
+
+			if (strlen(*dst) == 0)
+			{
+				*dst = krealloc(*dst, buff_len, GFP_KERNEL);
+				memcpy(*dst, word, strlen(word) + 1);
+			} else {
+				*dst = krealloc(*dst, buff_len, GFP_KERNEL);
+				strncat(strncat(*dst, "\n", 1), word, strlen(word));
+			}
 		}
+
+		traverse_node(ptr->next, dst);
 	}
 
-	return "";
+}
+
+u8 * domain_list(domain_group * group)
+{
+	domain_node * ptr = group->root_node->children;
+	u8 * ret = kmalloc(sizeof(u8), GFP_KERNEL);
+	ret[0] = '\0';
+	traverse_node(ptr, &ret);
+
+	return ret;
 }
 
 domain_node * domain_search(domain_group * group, u8 * name)
