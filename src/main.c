@@ -422,7 +422,7 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 	if (domain_name == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
-		return -1;
+		return false;
 	}
 
 	group = group_get(group_name);
@@ -431,22 +431,22 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		return -1;
+		return false;
 	}
 
 	if (strlen(domain_name) > 253)
 	{
 		printk(KERN_ERR "dnset: domain too long");
-		return -1;
+		return false;
 	}
 
 	if (strlen(domain_name) < 1)
 	{
 		printk(KERN_ERR "dnset: domain too short");
-		return -1;
+		return false;
 	}
 
-	return domain_search(group, domain_name);
+	return domain_search(group, domain_name) != NULL;
 }
 
 module_init(dnset_init);
