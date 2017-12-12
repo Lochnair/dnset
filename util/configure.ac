@@ -16,6 +16,8 @@ AC_PROG_CC
 AC_CHECK_HEADERS([string.h])
 
 PKG_CHECK_MODULES(LIBNL3, libnl-3.0 >= 3.1, [have_libnl3=yes], [have_libnl3=no])
+PKG_CHECK_MODULES(LIBNL_GENL3, libnl-genl-3.0 >= 3.1, [have_libnl_genl3=yes], [have_libnl_genl3=no])
+
 if (test "${have_libnl3}" = "yes"); then
 
         CFLAGS+=" $LIBNL3_CFLAGS"
@@ -24,16 +26,9 @@ if (test "${have_libnl3}" = "yes"); then
 
 fi
 
-PKG_CHECK_MODULES(LIBNL_GENL3, libnl-genl-3.0 >= 3.1, [have_libnl_genl3=yes], [have_libnl_genl3=no])
 if (test "${have_libnl_genl3}" = "yes"); then
 	CFLAGS+=" $LIBNL_GENL3_CFLAGS"
         LIBS+=" $LIBNL_GENL3_LIBS"
-fi
-
-PKG_CHECK_MODULES(LIBIDN2, libidn2 >= 0.1, [have_libidn2=yes], [have_libidn2=no])
-if (test "${have_libidn2}" = "yes"); then
-        CFLAGS+=" $LIBIDN2_CFLAGS"
-        LIBS+=" $LIBIDN2_LIBS"
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
