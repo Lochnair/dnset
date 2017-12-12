@@ -421,7 +421,7 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 	if (group == NULL)
 	{
 		// Non-existant group
-		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
+		printk(KERN_INFO "dnset: attempted to match domain with non-existant group: %s", group_name);
 		return false;
 	}
 
