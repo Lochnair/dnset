@@ -25,6 +25,7 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
 #include <linux/genetlink.h>
+#include <idn2.h>
 #include "netlink.h"
 
 #define DNSET_GENL_FAMILY_NAME "dnset"
@@ -35,6 +36,7 @@ struct nl_sock* sock;
 static inline int add_domain(char * group, char * domain)
 {
 	int family_id, ret;
+	char * ascii_domain;
 	struct nl_msg *msg;
 
 	sock = nl_socket_alloc();
@@ -66,12 +68,21 @@ static inline int add_domain(char * group, char * domain)
 		return 7;
 	}
 
-	ret = nla_put_string(msg, DNSET_A_DOMAIN, domain);
+	ret = idn2_to_ascii_8z(domain, &ascii_domain, IDN2_NONTRANSITIONAL);
+	if (ret != IDNA_SUCCESS)
+	{
+		printf("IDN2 conversion failed.");
+		return 8;
+	}
+
+	printf("IDN2 domain: %s", ascii_domain);
+
+	ret = nla_put_string(msg, DNSET_A_DOMAIN, ascii_domain);
 
 	if (ret != 0) {
 		printf("Couldn't add domain attribute to message.\n");
 		nl_socket_free(sock);
-		return 8;
+		return 9;
 	}
 
 	ret = nl_send_auto(sock, msg);
@@ -79,7 +90,7 @@ static inline int add_domain(char * group, char * domain)
 	if (ret < 0) {
 		printf("Couldn't send message.\n");
 		nl_socket_free(sock);
-		return 9;
+		return 10;
 	}
 
 	free(msg);
