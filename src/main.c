@@ -44,6 +44,7 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	u8 *domain, *group_name;
+	u8 domain_len, group_len;
 	domain_group * group;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -57,11 +58,14 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	domain = kmalloc(strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1), GFP_KERNEL);
-	strcpy(domain, nla_data(tb[DNSET_A_DOMAIN]));
+	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1);
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP]) + 1);
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	domain = kmalloc(domain_len, GFP_KERNEL);
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
+
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (domain == NULL || group_name == NULL)
 	{
@@ -69,44 +73,35 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
+	if (domain_len > 253)
+        {
+                printk(KERN_ERR "dnset: domain too long");
+		kfree(domain);
+		kfree(group_name);
+                return -1;
+        }
+
 	group = group_get(group_name);
 
 	if (group == NULL)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		return -1;
-	}
-
-	if (strlen(domain) > 253)
-	{
-		printk(KERN_ERR "dnset: domain too long");
-		return -1;
-	}
-
-	if (strlen(domain) < 1)
-	{
-		printk(KERN_ERR "dnset: domain too short");
-		return -1;
-	}
-
-	if (domain_search(group, domain))
-	{
-		printk(KERN_ERR "dnset: domain %s already in group %s", domain, (u8 *)nla_data(tb[DNSET_A_GROUP]));
+		kfree(domain);
+		kfree(group_name);
 		return -1;
 	}
 
 	if (domain_add(group, domain) != 0)
 	{
 		printk(KERN_ERR "dnset: Something went horribly wrong.");
+		kfree(domain);
+		kfree(group_name);
 		return -1;
 	}
 
-	if (domain_search(group, domain) == NULL)
-	{
-		printk(KERN_ERR "dnset: just added domain not found.");
-		return -1;
-	}
+	kfree(domain);
+	kfree(group_name);
 
 	return 0;
 }
@@ -116,6 +111,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	u8 *group_name;
+	u8 group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -128,10 +124,11 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
-	if (strlen(group_name) < 1)
+	if (group_len < 1)
 	{
 		return -1;
 	}
@@ -139,12 +136,14 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	if (group_get(group_name) != NULL)
 	{
 		printk(KERN_ERR "dnset: group %s already exists", group_name);
+		kfree(group_name);
 		return -1;
 	}
 
 	if (group_add(group_name) != 0)
 	{
 		printk(KERN_ERR "dnset: something went wrong while adding group: %s", group_name);
+		kfree(group_name);
 		return -1;
 	}
 
@@ -156,6 +155,7 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	u8 *domain, *group_name;
+	u8 domain_len, group_len;
 	domain_group * group;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -169,15 +169,24 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	domain = kmalloc(strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1), GFP_KERNEL);
-	strcpy(domain, nla_data(tb[DNSET_A_DOMAIN]));
+	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	domain = kmalloc(domain_len, GFP_KERNEL);
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
+
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
+		return -1;
+	}
+
+	if (domain_len > 253)
+	{
+		printk(KERN_ERR "dnset: domain too long");
 		return -1;
 	}
 
@@ -187,18 +196,8 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		return -1;
-	}
-
-	if (strlen(domain) > 253)
-	{
-		printk(KERN_ERR "dnset: domain too long");
-		return -1;
-	}
-
-	if (strlen(domain) < 1)
-	{
-		printk(KERN_ERR "dnset: domain too short");
+		kfree(domain);
+		kfree(group_name);
 		return -1;
 	}
 
@@ -206,8 +205,13 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 
 	if (ret > 0) {
 		printk(KERN_ERR "dnset: Something went wrong");
+		kfree(domain);
+		kfree(group_name);
 		return -1;
 	}
+
+	kfree(domain);
+	kfree(group_name);
 
 	return 0;
 }
@@ -217,6 +221,7 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	u8 *group_name;
+	u8 group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -229,19 +234,24 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
-	if (strlen(group_name) < 1)
+	if (group_len < 1)
 	{
+		kfree(group_name);
 		return -1;
 	}
 
 	if (group_del(group_name) != 0)
 	{
 		printk(KERN_ERR "dnset: Something wong.");
+		kfree(group_name);
 		return -1;
 	}
+
+	kfree(group_name);
 
 	return 0;
 }
@@ -252,6 +262,7 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 	struct nlattr *tb[__DNSET_A_MAX];
 	domain_group * group;
 	u8 *group_name;
+	u8 group_len;
 	char * list;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -265,17 +276,20 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
-	if (strlen(group_name) < 1)
+	if (group_len < 1)
 	{
+		kfree(group_name);
 		return -1;
 	}
 
 	if ((group = group_get(group_name)) == NULL)
 	{
 		printk(KERN_ERR "dnset: group %s doesn't exist", group_name);
+		kfree(group_name);
 		return -1;
 	}
 
@@ -299,6 +313,7 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	u8 *domain, *group_name;
+	u8 domain_len, group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -311,14 +326,23 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	domain = kmalloc(strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1), GFP_KERNEL);
-	strcpy(domain, nla_data(tb[DNSET_A_DOMAIN]));
+	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
-	group_name = kmalloc(strlen(nla_data(tb[DNSET_A_GROUP]) + 1), GFP_KERNEL);
-	strcpy(group_name, nla_data(tb[DNSET_A_GROUP]));
+	domain = kmalloc(domain_len, GFP_KERNEL);
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
 
-	if (!dnset_match(group_name, domain))
+	group_name = kmalloc(group_len, GFP_KERNEL);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
+
+	if (!dnset_match(group_name, domain)) {
+		kfree(domain);
+		kfree(group_name);
 		return -1;
+	}
+
+	kfree(domain);
+	kfree(group_name);
 
 	return 0;
 }
@@ -416,6 +440,12 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 		return false;
 	}
 
+	if (strlen(domain_name) > 253)
+	{
+		printk(KERN_ERR "dnset: domain too long");
+		return false;
+	}
+
 	group = group_get(group_name);
 
 	if (group == NULL)
@@ -425,17 +455,7 @@ bool dnset_match(u8 * group_name, u8 * domain_name)
 		return false;
 	}
 
-	if (strlen(domain_name) > 253)
-	{
-		printk(KERN_ERR "dnset: domain too long");
-		return false;
-	}
 
-	if (strlen(domain_name) < 1)
-	{
-		printk(KERN_ERR "dnset: domain too short");
-		return false;
-	}
 
 	printk("dnset: %s in %s: %s", domain_name, group_name, (domain_search(group, domain_name) == NULL ? "false" : "true"));
 
