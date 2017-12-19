@@ -103,17 +103,17 @@ static int node_add(domain_node * root, char * key) {
 	if (pTrav == NULL) {
 		// First node
 		for (pTrav = root; * key; pTrav = pTrav->children) {
-			spin_lock(&pTrav->lock);
 			pTrav->children = node_create(*key);
+			spin_lock(&pTrav->children->lock);
 			pTrav->children->parent = pTrav;
-			spin_unlock(&pTrav->lock);
+			spin_unlock(&pTrav->children->lock);
 			key++;
 		}
 
-		spin_lock(&pTrav->lock);
 		pTrav->children = node_create('\0');
+		spin_lock(&pTrav->children->lock);
 		pTrav->children->parent = pTrav;
-		spin_unlock(&pTrav->lock);
+		spin_unlock(&pTrav->children->lock);
 		return 0;
 	}
 
@@ -144,11 +144,11 @@ static int node_add(domain_node * root, char * key) {
 		spin_unlock(&pTrav->lock);
 	}
 
-	spin_lock(&pTrav->lock);
 	pTrav->next = node_create(*key);
+	spin_lock(&pTrav->next->lock);
 	pTrav->next->parent = pTrav->parent;
 	pTrav->next->prev = pTrav;
-	spin_unlock(&pTrav->lock);
+	spin_unlock(&pTrav->next->lock);
 
 	if (!(*key)) {
 		return 0;
@@ -157,17 +157,17 @@ static int node_add(domain_node * root, char * key) {
 	key++;
 
 	for (pTrav = pTrav->next; *key; pTrav = pTrav->children) {
-		spin_lock(&pTrav->lock);
 		pTrav->children = node_create(*key);
+		spin_lock(&pTrav->children->lock);
 		pTrav->children->parent = pTrav;
-		spin_unlock(&pTrav->lock);
+		spin_unlock(&pTrav->children->lock);
 		key++;
 	}
 
-	spin_lock(&pTrav->lock);
 	pTrav->children = node_create('\0');
+	spin_lock(&pTrav->children->lock);
 	pTrav->children->parent = pTrav;
-	spin_unlock(&pTrav->lock);
+	spin_unlock(&pTrav->children->lock);
 	return 0;
 }
 
