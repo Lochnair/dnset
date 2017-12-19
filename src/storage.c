@@ -125,9 +125,7 @@ static int node_add(domain_node * root, char * key) {
 	while (*key != '\0'){
 		if (*key == pTrav->key) {
 			key++;
-			spin_lock(&pTrav->lock);
 			pTrav = pTrav->children;
-			spin_unlock(&pTrav->lock);
 		} else {
 			break;
 		}
