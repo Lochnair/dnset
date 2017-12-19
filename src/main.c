@@ -80,9 +80,7 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	if (domain_len > 253)
         {
                 printk(KERN_ERR "dnset: domain too long");
-		kfree(domain);
-		kfree(group_name);
-                return -1;
+		goto error;
         }
 
 	group = group_get(group_name);
@@ -91,23 +89,24 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		kfree(domain);
-		kfree(group_name);
-		return -1;
+		goto error;
 	}
 
 	if (domain_add(group, domain) != 0)
 	{
 		printk(KERN_ERR "dnset: Something went horribly wrong.");
-		kfree(domain);
-		kfree(group_name);
-		return -1;
+		goto error;
 	}
 
 	kfree(domain);
 	kfree(group_name);
 
 	return 0;
+
+error:
+	kfree(domain);
+	kfree(group_name);
+	return -1;
 }
 
 static int add_group(struct sk_buff *skb, struct genl_info *info)
@@ -152,12 +151,13 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
+	kfree(group_name);
 	return 0;
 }
 
 static int del_domain(struct sk_buff *skb, struct genl_info *info)
 {
-	int ret;
+	int ret = 0;
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *domain, *group_name;
 	char domain_len, group_len;
@@ -189,13 +189,15 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
-		return -1;
+		ret = -1;
+		goto ret;
 	}
 
 	if (domain_len > 253)
 	{
 		printk(KERN_ERR "dnset: domain too long");
-		return -1;
+		ret = -1;
+		goto ret;
 	}
 
 	group = group_get(group_name);
@@ -204,24 +206,22 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		kfree(domain);
-		kfree(group_name);
-		return -1;
+		ret = -1;
+		goto ret;
 	}
 
 	ret = domain_del(group, domain);
 
 	if (ret > 0) {
 		printk(KERN_ERR "dnset: Something went wrong");
-		kfree(domain);
-		kfree(group_name);
-		return -1;
+		ret = -1;
+		goto ret;
 	}
 
+ret:
 	kfree(domain);
 	kfree(group_name);
-
-	return 0;
+	return ret;
 }
 
 static int del_group(struct sk_buff *skb, struct genl_info *info)
