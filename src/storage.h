@@ -18,7 +18,7 @@
  */
 
 typedef struct domain_node {
-	u8 key;
+	char key;
 	struct domain_node * next;
 	struct domain_node * prev;
 	struct domain_node * parent;
@@ -27,26 +27,26 @@ typedef struct domain_node {
 } domain_node;
 
 typedef struct domain_group {
-	u8 * name;
+	char * name;
 	domain_node * root_node;
 	struct list_head list;
 } domain_group;
 
-int domain_add(domain_group * group, u8 * name);
-int domain_del(domain_group * group, u8 * name);
-u8 * domain_list(domain_group * group);
-domain_node * domain_search(domain_group * group, u8 * name);
+int domain_add(domain_group * group, char * name);
+int domain_del(domain_group * group, char * name);
+char * domain_list(domain_group * group);
+domain_node * domain_search(domain_group * group, char * name);
 
-int group_add(u8 * name);
-int group_del(u8 * name);
+int group_add(char * name);
+int group_del(char * name);
 void group_destroy(void);
-domain_group * group_get(u8 * name);
-u8 * group_list(void);
+domain_group * group_get(char * name);
+char * group_list(void);
 
-static inline u8 * strrev(u8 * str)
+static inline char * strrev(char * str)
 {
 	const int l = strlen(str);
-	u8* rs = kmalloc(l + 1, GFP_KERNEL);
+	char* rs = kmalloc(l + 1, GFP_KERNEL);
 	int i;
 
 	for(i = 0; i < l; i++) {

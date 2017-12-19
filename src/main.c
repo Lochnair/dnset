@@ -43,8 +43,8 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	u8 *domain, *group_name;
-	u8 domain_len, group_len;
+	char *domain, *group_name;
+	char domain_len, group_len;
 	domain_group * group;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -110,8 +110,8 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	u8 *group_name;
-	u8 group_len;
+	char *group_name;
+	char group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -154,8 +154,8 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	u8 *domain, *group_name;
-	u8 domain_len, group_len;
+	char *domain, *group_name;
+	char domain_len, group_len;
 	domain_group * group;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -220,8 +220,8 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	u8 *group_name;
-	u8 group_len;
+	char *group_name;
+	char group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -261,8 +261,8 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	domain_group * group;
-	u8 *group_name;
-	u8 group_len;
+	char *group_name;
+	char group_len;
 	char * list;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
@@ -312,8 +312,8 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	u8 *domain, *group_name;
-	u8 domain_len, group_len;
+	char *domain, *group_name;
+	char domain_len, group_len;
 
 	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
@@ -430,7 +430,7 @@ static void __exit dnset_exit (void)
 	genl_unregister_family(&dnset_gnl_family);
 }
 
-bool dnset_match(u8 * group_name, u8 * domain_name)
+bool dnset_match(char * group_name, char * domain_name)
 {
 	domain_group * group;
 

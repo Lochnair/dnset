@@ -24,7 +24,7 @@
 
 LIST_HEAD(group_list_head);
 
-static domain_node * node_create(u8 key) {
+static domain_node * node_create(char key) {
 	domain_node * node = (domain_node *) kmalloc(sizeof(domain_node), GFP_KERNEL);
 
 	if (node == NULL) {
@@ -44,9 +44,9 @@ static domain_node * node_create_root(void) {
 	return node_create('\0');
 }
 
-static domain_node * node_lookup(domain_node * root, u8 * key) {
+static domain_node * node_lookup(domain_node * root, char * key) {
 	domain_node * level = root;
-	u32 lvl = 0;
+	unsigned int lvl = 0;
 
 	if (root == NULL)
 		return NULL;
@@ -89,7 +89,7 @@ static domain_node * node_lookup(domain_node * root, u8 * key) {
 	}
 }
 
-static s32 node_add(domain_node * root, u8 * key) {
+static int node_add(domain_node * root, char * key) {
 	domain_node * pTrav = NULL;
 
 	if (root == NULL) {
@@ -201,7 +201,7 @@ static void node_destroy(domain_node * root) {
 	}
 }
 
-static s32 node_remove(domain_node * root, u8 * key) {
+static int node_remove(domain_node * root, char * key) {
 	domain_node * ptr = NULL;
 	domain_node * tmp = NULL;
 
@@ -244,17 +244,17 @@ static s32 node_remove(domain_node * root, u8 * key) {
 	return 0;
 }
 
-s32 domain_add(domain_group * group, u8 * name)
+int domain_add(domain_group * group, char * name)
 {
 	return node_add(group->root_node, strrev(name));
 }
 
-s32 domain_del(domain_group * group, u8 * name)
+int domain_del(domain_group * group, char * name)
 {
 	return node_remove(group->root_node, strrev(name));
 }
 
-void traverse_node(domain_node * ptr, u8 ** dst)
+void traverse_node(domain_node * ptr, char ** dst)
 {
 
 	for (; ptr != NULL; ptr = ptr->children)
@@ -262,12 +262,12 @@ void traverse_node(domain_node * ptr, u8 ** dst)
 		if (ptr->key == '\0')
 		{
 			domain_node * tmp = ptr->parent;
-			u8 * word = kmalloc(sizeof(u8), GFP_KERNEL);
-			u32 buff_len, len = 0;
+			char * word = kmalloc(sizeof(char), GFP_KERNEL);
+			unsigned int buff_len, len = 0;
 
 			while (tmp)
 			{
-				word = krealloc(word, sizeof(u8) * (1 + len), GFP_KERNEL);
+				word = krealloc(word, sizeof(char) * (1 + len), GFP_KERNEL);
 				word[len] = tmp->key;
 
 				if (len > 0 && tmp->key == '\0')
@@ -298,22 +298,22 @@ void traverse_node(domain_node * ptr, u8 ** dst)
 
 }
 
-u8 * domain_list(domain_group * group)
+char * domain_list(domain_group * group)
 {
 	domain_node * ptr = group->root_node->children;
-	u8 * ret = kmalloc(sizeof(u8), GFP_KERNEL);
+	char * ret = kmalloc(sizeof(char), GFP_KERNEL);
 	ret[0] = '\0';
 	traverse_node(ptr, &ret);
 
 	return ret;
 }
 
-domain_node * domain_search(domain_group * group, u8 * name)
+domain_node * domain_search(domain_group * group, char * name)
 {
 	return node_lookup(group->root_node, strrev(name));
 }
 
-s32 group_add(u8 * group_name)
+int group_add(char * group_name)
 {
 	domain_group * group = kmalloc(sizeof(domain_group), GFP_KERNEL);
 
@@ -335,7 +335,7 @@ s32 group_add(u8 * group_name)
 	return 0;
 }
 
-s32 group_del(u8 * name)
+int group_del(char * name)
 {
 	domain_group * group = group_get(name);
 
@@ -364,7 +364,7 @@ void group_destroy()
 	}
 }
 
-domain_group * group_get(u8 * name)
+domain_group * group_get(char * name)
 {
         domain_group * group;
         struct list_head * pos;
@@ -398,15 +398,15 @@ domain_group * group_get(u8 * name)
         return NULL;
 }
 
-u8 * group_list(void)
+char * group_list(void)
 {
 	domain_group * group;
 	struct list_head * pos;
-	u8 * list = NULL;
-	u32 len = 0;
+	char * list = NULL;
+	unsigned int len = 0;
 
 	list_for_each(pos, &group_list_head) {
-		u32 curr_len = 0;
+		unsigned int curr_len = 0;
 		group = list_entry(pos, domain_group, list);
 
 		if (group == NULL)
