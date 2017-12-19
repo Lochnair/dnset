@@ -115,7 +115,7 @@ static int node_add(domain_node * root, char * key) {
 	}
 
 	if (node_lookup(pTrav, key)) {
-		printk(KERN_ERR "dnset: Duplicate key");
+		printk(KERN_ERR "dnset: Duplicate key: %c", *key);
 		return -1;
 	}
 
