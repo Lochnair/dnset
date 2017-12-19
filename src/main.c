@@ -58,8 +58,8 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 		return ret;
 	}
 
-	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN]) + 1);
-	group_len = strlen(nla_data(tb[DNSET_A_GROUP]) + 1);
+	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
+	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
 	domain = kmalloc(domain_len, GFP_KERNEL);
 	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
