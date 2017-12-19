@@ -62,10 +62,14 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
 	domain = kmalloc(domain_len, GFP_KERNEL);
-	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
-
 	group_name = kmalloc(group_len, GFP_KERNEL);
+
+	WARN_ON(domain == NULL);
+	WARN_ON(group_name == NULL);
+
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
+
 
 	if (domain == NULL || group_name == NULL)
 	{
@@ -126,6 +130,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 	group_name = kmalloc(group_len, GFP_KERNEL);
+	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (group_len < 1)
@@ -173,9 +178,12 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
 	domain = kmalloc(domain_len, GFP_KERNEL);
-	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
-
 	group_name = kmalloc(group_len, GFP_KERNEL);
+
+	WARN_ON(domain == NULL);
+	WARN_ON(group_name == NULL);
+
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (domain == NULL || group_name == NULL)
@@ -236,6 +244,7 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 	group_name = kmalloc(group_len, GFP_KERNEL);
+	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (group_len < 1)
@@ -278,6 +287,7 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 	group_name = kmalloc(group_len, GFP_KERNEL);
+	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (group_len < 1)
@@ -330,9 +340,12 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
 	domain = kmalloc(domain_len, GFP_KERNEL);
-	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
-
 	group_name = kmalloc(group_len, GFP_KERNEL);
+
+	WARN_ON(domain == NULL);
+	WARN_ON(group_name == NULL);
+
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
 	if (!dnset_match(group_name, domain)) {
