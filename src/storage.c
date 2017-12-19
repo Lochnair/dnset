@@ -27,10 +27,7 @@ LIST_HEAD(group_list_head);
 static domain_node * node_create(char key) {
 	domain_node * node = (domain_node *) kmalloc(sizeof(domain_node), GFP_KERNEL);
 
-	if (node == NULL) {
-		printk(KERN_ERR "dnset: Couldn't allocate memory for new node");
-		return node;
-	}
+	WARN_ON(node == NULL);
 
 	node->key = key;
 	node->next = NULL;
@@ -336,10 +333,7 @@ int group_add(char * group_name)
 {
 	domain_group * group = kmalloc(sizeof(domain_group), GFP_KERNEL);
 
-	if (group == NULL) {
-		printk(KERN_ERR "dnset: Couldn't allocate memory for new group.");
-		return -1;
-	}
+	WARN_ON(group == NULL);
 
 	group->name = group_name;
 	group->root_node = node_create_root();
