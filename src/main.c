@@ -61,8 +61,8 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
-	domain = kmalloc(domain_len, GFP_KERNEL);
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	domain = kzalloc(domain_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 
 	WARN_ON(domain == NULL);
 	WARN_ON(group_name == NULL);
@@ -128,7 +128,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
@@ -177,8 +177,8 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
-	domain = kmalloc(domain_len, GFP_KERNEL);
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	domain = kzalloc(domain_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 
 	WARN_ON(domain == NULL);
 	WARN_ON(group_name == NULL);
@@ -243,7 +243,7 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
@@ -286,7 +286,7 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 	WARN_ON(group_name == NULL);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
@@ -339,8 +339,8 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 	domain_len = strlen(nla_data(tb[DNSET_A_DOMAIN])) + 1;
 	group_len = strlen(nla_data(tb[DNSET_A_GROUP])) + 1;
 
-	domain = kmalloc(domain_len, GFP_KERNEL);
-	group_name = kmalloc(group_len, GFP_KERNEL);
+	domain = kzalloc(domain_len, GFP_KERNEL);
+	group_name = kzalloc(group_len, GFP_KERNEL);
 
 	WARN_ON(domain == NULL);
 	WARN_ON(group_name == NULL);

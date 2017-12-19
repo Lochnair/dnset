@@ -25,7 +25,7 @@
 LIST_HEAD(group_list_head);
 
 static domain_node * node_create(char key) {
-	domain_node * node = (domain_node *) kmalloc(sizeof(domain_node), GFP_KERNEL);
+	domain_node * node = (domain_node *) kzalloc(sizeof(domain_node), GFP_KERNEL);
 
 	WARN_ON(node == NULL);
 
@@ -278,7 +278,7 @@ void traverse_node(domain_node * ptr, char ** dst)
 		if (ptr->key == '\0')
 		{
 			domain_node * tmp = ptr->parent;
-			char * word = kmalloc(sizeof(char), GFP_KERNEL);
+			char * word = kzalloc(sizeof(char), GFP_KERNEL);
 			unsigned int buff_len, len = 0;
 
 			while (tmp)
@@ -317,7 +317,7 @@ void traverse_node(domain_node * ptr, char ** dst)
 char * domain_list(domain_group * group)
 {
 	domain_node * ptr = group->root_node->children;
-	char * ret = kmalloc(sizeof(char), GFP_KERNEL);
+	char * ret = kzalloc(sizeof(char), GFP_KERNEL);
 	ret[0] = '\0';
 	traverse_node(ptr, &ret);
 
@@ -331,7 +331,7 @@ domain_node * domain_search(domain_group * group, char * name)
 
 int group_add(char * group_name)
 {
-	domain_group * group = kmalloc(sizeof(domain_group), GFP_KERNEL);
+	domain_group * group = kzalloc(sizeof(domain_group), GFP_KERNEL);
 
 	WARN_ON(group == NULL);
 
@@ -440,7 +440,7 @@ char * group_list(void)
 		if (len == 0)
 		{
 			len += curr_len + 1; /* +1 for null-terminator */
-			list = kmalloc(len, GFP_KERNEL);
+			list = kzalloc(len, GFP_KERNEL);
 			memcpy(list, group->name, len);
 		} else {
 			curr_len = strlen(group->name);
