@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <linux/list.h>
 #include <linux/slab.h>
+#include <linux/rculist.h>
 
 #include "storage.h"
 
@@ -330,7 +330,7 @@ int group_add(char * group_name)
 	}
 
 	INIT_LIST_HEAD(&group->list);
-	list_add(&group->list, &group_list_head);
+	list_add_rcu(&group->list, &group_list_head);
 
 	return 0;
 }
@@ -342,7 +342,8 @@ int group_del(char * name)
 	if (!group)
 		return -1;
 
-	list_del(&group->list);
+	list_del_rcu(&group->list);
+	synchronize_rcu();
 	node_destroy(group->root_node);
 	kfree(group->name);
 	kfree(group);
@@ -353,11 +354,10 @@ int group_del(char * name)
 void group_destroy()
 {
 	domain_group * group;
-	struct list_head * pos;
 
-	list_for_each_prev(pos, &group_list_head) {
-		group = list_entry(pos, domain_group, list);
-		list_del(&group->list);
+	list_for_each_entry_rcu(group, &group_list_head, list) {
+		list_del_rcu(&group->list);
+		synchronize_rcu();
 		node_destroy(group->root_node);
 		kfree(group->name);
 		kfree(group);
@@ -366,8 +366,7 @@ void group_destroy()
 
 domain_group * group_get(char * name)
 {
-        domain_group * group;
-        struct list_head * pos;
+        domain_group * group = NULL, * tmp = NULL;
 
         if (name == NULL)
         {
@@ -375,39 +374,41 @@ domain_group * group_get(char * name)
                 return NULL;
         }
 
-        list_for_each(pos, &group_list_head) {
-                group = list_entry(pos, domain_group, list);
+	rcu_read_lock();
+        list_for_each_entry_rcu(tmp, &group_list_head, list) {
 
-                if (group == NULL)
+                if (tmp == NULL)
                 {
                         printk(KERN_ERR "dnset: group is null");
                         continue;
                 }
 
-                if (group->name == NULL)
+                if (tmp->name == NULL)
                 {
                         printk(KERN_ERR "dnset: group->name is null");
                         continue;
                 }
 
-                if (strcmp(name, group->name) == 0) {
-                        return group;
+                if (strcmp(name, tmp->name) == 0) {
+                        group = tmp;
+			goto unlock;
                 }
         }
 
-        return NULL;
+unlock:
+	rcu_read_unlock();
+	return group;
 }
 
 char * group_list(void)
 {
 	domain_group * group;
-	struct list_head * pos;
 	char * list = NULL;
 	unsigned int len = 0;
 
-	list_for_each(pos, &group_list_head) {
+	rcu_read_lock();
+	list_for_each_entry_rcu(group, &group_list_head, list) {
 		unsigned int curr_len = 0;
-		group = list_entry(pos, domain_group, list);
 
 		if (group == NULL)
 		{
@@ -435,6 +436,7 @@ char * group_list(void)
 			strncat(strncat(list, "\n", 1), group->name, curr_len);
 		}
 	}
+	rcu_read_unlock();
 
 	return list;
 }
