@@ -137,9 +137,7 @@ static int node_add(domain_node * root, char * key) {
 			node_add(pTrav->next, key);
 			return 0;
 		}
-		spin_lock(&pTrav->lock);
 		pTrav = pTrav->next;
-		spin_unlock(&pTrav->lock);
 	}
 
 	pTrav->next = node_create(*key);
