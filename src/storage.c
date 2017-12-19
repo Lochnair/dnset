@@ -37,6 +37,7 @@ static domain_node * node_create(char key) {
 	node->children = NULL;
 	node->parent = NULL;
 	node->prev = NULL;
+	spin_lock_init(&node->lock);
 	return node;
 }
 
@@ -102,13 +103,17 @@ static int node_add(domain_node * root, char * key) {
 	if (pTrav == NULL) {
 		// First node
 		for (pTrav = root; * key; pTrav = pTrav->children) {
+			spin_lock(&pTrav->lock);
 			pTrav->children = node_create(*key);
 			pTrav->children->parent = pTrav;
+			spin_unlock(&pTrav->lock);
 			key++;
 		}
 
+		spin_lock(&pTrav->lock);
 		pTrav->children = node_create('\0');
 		pTrav->children->parent = pTrav;
+		spin_unlock(&pTrav->lock);
 		return 0;
 	}
 
@@ -120,7 +125,9 @@ static int node_add(domain_node * root, char * key) {
 	while (*key != '\0'){
 		if (*key == pTrav->key) {
 			key++;
+			spin_lock(&pTrav->lock);
 			pTrav = pTrav->children;
+			spin_unlock(&pTrav->lock);
 		} else {
 			break;
 		}
@@ -132,12 +139,16 @@ static int node_add(domain_node * root, char * key) {
 			node_add(pTrav->next, key);
 			return 0;
 		}
+		spin_lock(&pTrav->lock);
 		pTrav = pTrav->next;
+		spin_unlock(&pTrav->lock);
 	}
 
+	spin_lock(&pTrav->lock);
 	pTrav->next = node_create(*key);
 	pTrav->next->parent = pTrav->parent;
 	pTrav->next->prev = pTrav;
+	spin_unlock(&pTrav->lock);
 
 	if (!(*key)) {
 		return 0;
@@ -146,13 +157,17 @@ static int node_add(domain_node * root, char * key) {
 	key++;
 
 	for (pTrav = pTrav->next; *key; pTrav = pTrav->children) {
+		spin_lock(&pTrav->lock);
 		pTrav->children = node_create(*key);
 		pTrav->children->parent = pTrav;
+		spin_unlock(&pTrav->lock);
 		key++;
 	}
 
+	spin_lock(&pTrav->lock);
 	pTrav->children = node_create('\0');
 	pTrav->children->parent = pTrav;
+	spin_unlock(&pTrav->lock);
 	return 0;
 }
 
@@ -218,25 +233,33 @@ static int node_remove(domain_node * root, char * key) {
 	while(1) {
 		tmp = ptr;
 		if (ptr->prev && ptr->next) {
+			spin_lock(&ptr->lock);
 			ptr->next->prev = ptr->prev;
 			ptr->prev->next = ptr->next;
+			spin_unlock(&ptr->lock);
 
 			kfree(tmp);
 			break;
 		}
 		else if (ptr->prev && !ptr->next) {
+			spin_lock(&ptr->lock);
 			ptr->prev->next = NULL;
+			spin_unlock(&ptr->lock);
 			kfree(tmp);
 			break;
 		}
 		else if (!ptr->prev && ptr->next) {
+			spin_lock(&ptr->lock);
 			ptr->parent->children = ptr->next;
+			spin_unlock(&ptr->lock);
 			kfree(tmp);
 			break;
 		}
 		else {
 			ptr = ptr->parent;
+			spin_lock(&ptr->lock);
 			ptr->children = NULL;
+			spin_unlock(&ptr->lock);
 			kfree(tmp);
 		}
 	}

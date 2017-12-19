@@ -24,6 +24,7 @@ typedef struct domain_node {
 	struct domain_node * parent;
 	struct domain_node * children;
 	bool is_word;
+	spinlock_t lock;
 } domain_node;
 
 typedef struct domain_group {
