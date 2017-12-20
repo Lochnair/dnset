@@ -21,14 +21,14 @@
 #define DNSET_GENL_VERSION 0x1
 
 /* Attributes */
-enum {
+typedef enum {
 	DNSET_A_UNSPEC,
 	DNSET_A_DOMAIN,
 	DNSET_A_GROUP,
 	DNSET_A_LIST,
 	DNSET_A_RESULT,
 	__DNSET_A_MAX,
-};
+} DN_ATTR;
 
 #define DNSET_A_MAX (__DNSET_A_MAX - 1)
 

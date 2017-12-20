@@ -39,6 +39,24 @@ static struct nla_policy dnset_genl_policy[DNSET_A_MAX + 1] = {
 	[DNSET_A_RESULT]	= { .type = NLA_STRING },
 };
 
+static int send_reply_to_userspace(struct genl_info *info, DN_ATTR attr, void * payload, size_t payload_size)
+{
+	struct sk_buff * msg = genlmsg_new(payload_size, GFP_KERNEL);
+	void * reply;
+
+	if (!msg)
+		return -ENOMEM;
+
+	reply = genlmsg_put_reply(msg, info, &dnset_gnl_family, 0, info->genlhdr->cmd);
+
+	if (!reply)
+		return -EMSGSIZE;
+
+	nla_put(msg, attr, payload_size, payload);
+	genlmsg_end(msg, reply);
+	return genlmsg_reply(msg, info);
+}
+
 static int add_domain(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
