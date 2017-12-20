@@ -92,12 +92,14 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
+		send_reply_to_userspace(info, DNSET_A_RESULT, "There's a null-pointer in my message.", strlen("There's a null-pointer in my message.") + 1);
 		return -1;
 	}
 
 	if (domain_len > 253)
         {
                 printk(KERN_ERR "dnset: domain too long");
+		send_reply_to_userspace(info, DNSET_A_RESULT, "The specified domain is too long.", strlen("The specified domain is too long.") + 1);
 		goto error;
         }
 
@@ -107,18 +109,21 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
+		send_reply_to_userspace(info, DNSET_A_RESULT, "The specified group does not exist.", strlen("The specified group does not exist.") + 1);
 		goto error;
 	}
 
 	if (domain_add(group, domain) != 0)
 	{
 		printk(KERN_ERR "dnset: Something went horribly wrong.");
+		send_reply_to_userspace(info, DNSET_A_RESULT, "Couldn't add the domain.", strlen("Couldn't add the domain.") + 1);
 		goto error;
 	}
 
 	kfree(domain);
 	kfree(group_name);
 
+	send_reply_to_userspace(info, DNSET_A_RESULT, "OK.", strlen("OK.") + 1);
 	return 0;
 
 error:
@@ -170,6 +175,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	kfree(group_name);
+	send_reply_to_userspace(info, DNSET_A_RESULT, "OK.", strlen("OK.") + 1);
 	return 0;
 }
 
