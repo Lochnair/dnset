@@ -31,6 +31,7 @@ typedef struct domain_group {
 	char * name;
 	domain_node * root_node;
 	struct list_head list;
+	struct rcu_head	rcu;
 } domain_group;
 
 int domain_add(domain_group * group, char * name);
