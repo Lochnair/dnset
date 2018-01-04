@@ -134,6 +134,7 @@ error:
 
 static int add_group(struct sk_buff *skb, struct genl_info *info)
 {
+	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *group_name;
 	char group_len;
@@ -177,6 +178,7 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 
 static int del_domain(struct sk_buff *skb, struct genl_info *info)
 {
+	int ret = 0;
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *domain, *group_name;
 	char domain_len, group_len;
