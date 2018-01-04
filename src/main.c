@@ -134,7 +134,6 @@ error:
 
 static int add_group(struct sk_buff *skb, struct genl_info *info)
 {
-	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *group_name;
 	char group_len;
@@ -163,25 +162,21 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	if (group_get(group_name) != NULL)
 	{
 		printk(KERN_ERR "dnset: group %s already exists", group_name);
-		kfree(group_name);
 		return -1;
 	}
 
 	if (group_add(group_name) != 0)
 	{
 		printk(KERN_ERR "dnset: something went wrong while adding group: %s", group_name);
-		kfree(group_name);
 		return -1;
 	}
 
-	kfree(group_name);
 	send_reply_to_userspace(info, DNSET_A_RESULT, "OK.", strlen("OK.") + 1);
 	return 0;
 }
 
 static int del_domain(struct sk_buff *skb, struct genl_info *info)
 {
-	int ret = 0;
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *domain, *group_name;
 	char domain_len, group_len;
@@ -213,15 +208,13 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
-		ret = -1;
-		goto ret;
+		return -1;
 	}
 
 	if (domain_len > 253)
 	{
 		printk(KERN_ERR "dnset: domain too long");
-		ret = -1;
-		goto ret;
+		return -1;
 	}
 
 	group = group_get(group_name);
@@ -230,22 +223,17 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		ret = -1;
-		goto ret;
+		return -1;
 	}
 
 	ret = domain_del(group, domain);
 
 	if (ret > 0) {
 		printk(KERN_ERR "dnset: Something went wrong");
-		ret = -1;
-		goto ret;
+		return -1;
 	}
 
-ret:
-	kfree(domain);
-	kfree(group_name);
-	return ret;
+	return 0;
 }
 
 static int del_group(struct sk_buff *skb, struct genl_info *info)
