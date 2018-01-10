@@ -154,12 +154,13 @@ static void traverseNode(struct node *curr, char **dst)
 			word = krealloc(word, (len * sizeof(char)) + sizeof(char), GFP_KERNEL);
 			word[word_len] = ptr->key;
 
-			if (curr->key == '\0')
+			++len;
+			++word_len;
+
+			if (ptr->key == '\0')
 				break;
 
 			ptr = ptr->parent;
-			++len;
-			++word_len;
 		}
 
 		dst_len = strlen(*dst) + word_len + 1;
