@@ -63,13 +63,13 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *domain, *group_name;
 	char domain_len, group_len;
-	domain_group * group;
+	struct group * group;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -97,13 +97,13 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	if (domain_len > 253)
-        {
-                printk(KERN_ERR "dnset: domain too long");
+	{
+		printk(KERN_ERR "dnset: domain too long");
 		send_reply_to_userspace(info, DNSET_A_RESULT, "The specified domain is too long.", strlen("The specified domain is too long.") + 1);
 		goto error;
-        }
+	}
 
-	group = group_get(group_name);
+	group = getGroup(group_name);
 
 	if (group == NULL)
 	{
@@ -113,7 +113,7 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 		goto error;
 	}
 
-	if (domain_add(group, domain) != 0)
+	if (!addDomain(group, domain))
 	{
 		printk(KERN_ERR "dnset: Something went horribly wrong.");
 		send_reply_to_userspace(info, DNSET_A_RESULT, "Couldn't add the domain.", strlen("Couldn't add the domain.") + 1);
@@ -139,11 +139,11 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 	char *group_name;
 	char group_len;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -160,13 +160,13 @@ static int add_group(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	if (group_get(group_name) != NULL)
+	if (getGroup(group_name) != NULL)
 	{
 		printk(KERN_ERR "dnset: group %s already exists", group_name);
 		return -1;
 	}
 
-	if (group_add(group_name) != 0)
+	if (!addGroup(group_name))
 	{
 		printk(KERN_ERR "dnset: something went wrong while adding group: %s", group_name);
 		return -1;
@@ -182,13 +182,13 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	struct nlattr *tb[__DNSET_A_MAX];
 	char *domain, *group_name;
 	char domain_len, group_len;
-	domain_group * group;
+	struct group * group;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -207,6 +207,8 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
 	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
 
+	ret = 0;
+
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
@@ -216,26 +218,31 @@ static int del_domain(struct sk_buff *skb, struct genl_info *info)
 	if (domain_len > 253)
 	{
 		printk(KERN_ERR "dnset: domain too long");
-		return -1;
+		ret = -1;
+		goto free;
 	}
 
-	group = group_get(group_name);
+	group = getGroup(group_name);
 
 	if (group == NULL)
 	{
 		// Non-existant group
 		printk(KERN_INFO "dnset: attempted to add domain to non-existant group: %s", group_name);
-		return -1;
+		ret = -1;
+		goto free;
 	}
 
-	ret = domain_del(group, domain);
-
-	if (ret > 0) {
+	if (!delDomain(group, domain)) {
 		printk(KERN_ERR "dnset: Something went wrong");
-		return -1;
+		ret = -1;
+		goto free;
 	}
 
+free:
+	kfree(domain);
+	kfree(group_name);
 	return 0;
+
 }
 
 static int del_group(struct sk_buff *skb, struct genl_info *info)
@@ -245,11 +252,11 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 	char *group_name;
 	char group_len;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -267,7 +274,7 @@ static int del_group(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	if (group_del(group_name) != 0)
+	if (!delGroup(group_name))
 	{
 		printk(KERN_ERR "dnset: Something wong.");
 		kfree(group_name);
@@ -283,16 +290,16 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret;
 	struct nlattr *tb[__DNSET_A_MAX];
-	domain_group * group;
+	struct group * group;
 	char *group_name;
 	char group_len;
 	char * list;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -310,14 +317,14 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 		return -1;
 	}
 
-	if ((group = group_get(group_name)) == NULL)
+	if ((group = getGroup(group_name)) == NULL)
 	{
 		printk(KERN_ERR "dnset: group %s doesn't exist", group_name);
 		kfree(group_name);
 		return -1;
 	}
 
-	list = domain_list(group);
+	list = listDomains(group);
 	printk("list: %s", list);
 
 	kfree(group_name);
@@ -326,7 +333,7 @@ static int list_domains(struct sk_buff *skb, struct genl_info *info)
 
 static int list_groups(struct sk_buff *skb, struct genl_info *info)
 {
-	char * result = group_list();
+	char * result = listGroups();
 	printk(KERN_INFO "dnset: list: %s", result);
 	kfree(result);
 	return 0;
@@ -339,11 +346,11 @@ static int match_domain(struct sk_buff *skb, struct genl_info *info)
 	char *domain, *group_name;
 	char domain_len, group_len;
 
-	#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 12, 0) > LINUX_VERSION_CODE
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy);
-	#else
+#else
 	ret = genlmsg_parse(info->nlhdr, &dnset_gnl_family, tb, DNSET_A_MAX, dnset_genl_policy, NULL);
-	#endif
+#endif
 
 	if (ret != 0) {
 		printk(KERN_ERR "dnset: Couldn't parse message.");
@@ -459,7 +466,7 @@ static void __exit dnset_exit (void)
 
 bool dnset_match(char * group_name, char * domain_name)
 {
-	domain_group * group;
+	struct group * group;
 
 	if (domain_name == NULL || group_name == NULL)
 	{
@@ -473,7 +480,7 @@ bool dnset_match(char * group_name, char * domain_name)
 		return false;
 	}
 
-	group = group_get(group_name);
+	group = getGroup(group_name);
 
 	if (group == NULL)
 	{
@@ -482,11 +489,9 @@ bool dnset_match(char * group_name, char * domain_name)
 		return false;
 	}
 
+	printk("dnset: %s in %s: %s", domain_name, group_name, matchDomain(group, domain_name) ? "true" : "false");
 
-
-	printk("dnset: %s in %s: %s", domain_name, group_name, (domain_search(group, domain_name) == NULL ? "false" : "true"));
-
-	return domain_search(group, domain_name) != NULL;
+	return matchDomain(group, domain_name);
 }
 
 module_init(dnset_init);

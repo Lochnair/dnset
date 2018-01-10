@@ -17,45 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-typedef struct domain_node {
+#define TRIE_MAX_WIDTH 255
+
+struct node {
 	char key;
-	struct domain_node * next;
-	struct domain_node * prev;
-	struct domain_node * parent;
-	struct domain_node * children;
-	bool is_word;
-	spinlock_t lock;
-} domain_node;
+	struct node *parent;
+	struct node *children[TRIE_MAX_WIDTH];
+	bool isLeaf;
+};
 
-typedef struct domain_group {
-	char * name;
-	domain_node * root_node;
+struct group {
+	char *name;
+	struct node *root_node;
 	struct list_head list;
-	struct rcu_head	rcu;
-} domain_group;
+};
 
-int domain_add(domain_group * group, char * name);
-int domain_del(domain_group * group, char * name);
-char * domain_list(domain_group * group);
-domain_node * domain_search(domain_group * group, char * name);
+bool addDomain(struct group *group, char *domain);
+bool delDomain(struct group *group, char *domain);
+char *listDomains(struct group *group);
+bool matchDomain(struct group *group, char *domain);
 
-int group_add(char * name);
-int group_del(char * name);
-void group_destroy(void);
-domain_group * group_get(char * name);
-char * group_list(void);
-
-static inline char * strrev(char * str)
-{
-	const int l = strlen(str);
-	char* rs = kmalloc(l + 1, GFP_KERNEL);
-	int i;
-
-	for(i = 0; i < l; i++) {
-		rs[i] = str[l - 1 - i];
-	}
-
-	rs[l] = '\0';
-
-	return rs;
-}
+bool addGroup(char *name);
+bool delGroup(char *name);
+void destroyGroups(void);
+struct group *getGroup(char *name);
+char *listGroups(void);
