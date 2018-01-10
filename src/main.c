@@ -82,19 +82,18 @@ static int add_domain(struct sk_buff *skb, struct genl_info *info)
 	domain = kzalloc(domain_len, GFP_KERNEL);
 	group_name = kzalloc(group_len, GFP_KERNEL);
 
-	WARN_ON(domain == NULL);
-	WARN_ON(group_name == NULL);
-
-	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
-	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
-
-
 	if (domain == NULL || group_name == NULL)
 	{
 		printk(KERN_ERR "dnset: how about that null-pointer?");
 		send_reply_to_userspace(info, DNSET_A_RESULT, "There's a null-pointer in my message.", strlen("There's a null-pointer in my message.") + 1);
 		return -1;
 	}
+
+	memcpy(domain, nla_data(tb[DNSET_A_DOMAIN]), domain_len);
+	memcpy(group_name, nla_data(tb[DNSET_A_GROUP]), group_len);
+
+
+	
 
 	if (domain_len > 253)
 	{
